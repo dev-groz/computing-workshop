@@ -2,11 +2,12 @@
 
 #define _USE_MATH_DEFINES
 #include <math.h>
+#include <fstream>
 
 #include <iomanip>
 
-const double tau = 0.1;
-const double h = 0.2;
+const double tau = 0.05;
+const double h = 0.05;
 
 const double a = 0.28;
 
@@ -26,19 +27,61 @@ double g1(double t) {
     return 1.21 * t - sin(2 * M_PI * t) / 2;
 }
 
-double explicit_scheme(double x_j, double t_n) {
-    return (U(x_j, t_n + tau) - U(x_j, t_n)) / tau + a * (U(x_j, t_n) - U(x_j - h, t_n)) / h;
-}
+
 
 int main()
 {
-    std::cout << std::fixed << std::setprecision(10);
 
-    for (double t_i = 0; t_i < 1; t_i += tau) {
-        for (double x_i = 0; x_i < 1; x_i += h) {
-            std::cout << x_i << "\t" << t_i << "\t" << abs(f(x_i, t_i) - explicit_scheme(x_i, t_i)) << "\n";
+    std::ofstream solution_file("solution.dat");
+    solution_file << std::fixed << std::setprecision(10);
+
+    int x_len = (int)(1/tau);
+    int t_len = (int)(1/h);
+
+    double matrix[t_len][x_len] {0};
+
+    double max_error = 0;
+
+    for (int n = 0; n < t_len; ++n){
+        for (int j = 0; j < x_len; ++j){
+            matrix[n][j] = 0;
+        }
+    }
+
+    for (int n = 0; n < t_len; ++n){
+        matrix[n][0] = phi(h * n);
+    }
+
+    for (int j = 0; j < x_len; ++j){
+        matrix[0][j] = g1(tau * j);
+    }
+
+    for (int n = 0; n < t_len - 1; ++n){
+        for (int j = 1; j < x_len; ++j){
+            double x_j = j * h;
+            double t_n = n * tau;
+            matrix[n + 1][j] = tau * (f(x_j, t_n) - a * (matrix[n][j] - matrix[n][j-1])/h) + matrix[n][j];
+        }
+    }
+
+    for (int n = 0; n < t_len - 1; ++n){
+        for (int j = 1; j < x_len; ++j){
+            double x_j = j * h;
+            double t_n = n * tau;
+            matrix[n + 1][j] = tau * (f(x_j, t_n) - a * (matrix[n][j] - matrix[n][j-1])/h) + matrix[n][j];
+        }
+    }
+
+
+    for (int n = 0; n < t_len; ++n){
+        for (int j = 0; j < x_len; ++j){
+            max_error = std::max(max_error, std::abs(U(j * h, n * tau) - matrix[n][j]));
+            solution_file << j * h << "\t" << n * tau << "\t" << matrix[n][j] << "\n";
 
         }
     }
 
+    std::cout << "Max error: " << max_error << std::endl;
+
+    solution_file.close();
 }
