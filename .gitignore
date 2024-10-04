@@ -5,6 +5,7 @@
 
 #DAT files
 *.dat
+*.exe
 
 # User-specific files
 *.rsuser

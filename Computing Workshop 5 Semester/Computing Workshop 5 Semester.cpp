@@ -7,11 +7,6 @@
 
 #include <iomanip>
 
-const double tau = 0.1;
-const double h = 0.05;
-
-const double a = 0.28;
-
 double U(double x, double t) {
     return pow(x + 1.1 * t, 2) - sin(2 * M_PI * t) / 2 - 3.1 * t * x;
 }
@@ -29,9 +24,14 @@ double g1(double t) {
 }
 
 
+// splot 'solution.dat', (x+1.1*y)**2 - sin(2*pi*y)/2 - 3.1*y*x
 
 int main()
 {
+    const double tau = 0.01;
+    const double h = 0.001;
+
+    const double a = 0.28;
 
     std::ofstream solution_file("solution.dat");
     solution_file << std::fixed << std::setprecision(10);
