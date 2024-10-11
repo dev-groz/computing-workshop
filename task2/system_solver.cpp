@@ -62,7 +62,6 @@ std::vector<double> solve_system(const matrix a, const std::vector<double>& b){
     for (int i = 1; i < n - 1; i++){
         v[i] = a[i][i+1] / (-a[i][i] - a[i][i-1]*v[i-1] );
         u[i] = (a[i][i-1] * u[i-1] - b[i])/ (-a[i][i] - a[i][i-1]*v[i-1] );
-
     }
 
     v[n - 1] = 0;
