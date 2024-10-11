@@ -82,70 +82,56 @@ std::vector<double> solve_system(const matrix<double> a, const std::vector<doubl
 int main(){
     const double a = 0.027;
     const double tau = 0.1;
-    const double h = 0.05;
+    const double h = 0.025;
 
+    int n = (int)(1 / h);
     int j_max = (int) 1 / tau;
-    int k_max = (int) 1 / h;
 
+    matrix<double> u(j_max, n);
 
-    matrix<double> grid(j_max, k_max);
-
-    for (int k = 0; k < k_max; k++){
-        grid.set_at(0, k, mu(k * h));
+    for (int k = 0; k < n; k++){
+        u.set_at(0, k, mu(k * h));
     }
 
     for (int j = 1; j < j_max; j++){
-        grid.set_at(j, 0, mu1(j * tau));
+        u.set_at(j, 0, mu1(j * tau));
     }
 
     for (int j = 1; j < j_max; j++){
-        grid.set_at(j, k_max - 1, mu2(j * tau));
+        u.set_at(j, n - 1, mu2(j * tau));
     }
 
+    matrix<double> A(n - 1, n - 1);
+    std::vector<double> b(n - 1);
 
-    int n = k_max - 2;
-
-    matrix<double> A(n, n);
-    std::vector<double> b(n);
-
-    for (int i = 0; i < n; i++){
-        if (i < k_max - 3)
+    for (int i = 0; i < n - 1; i++){
+        if (i < n - 2)
             A.set_at(i, i + 1, -a * tau);
         if (i > 0)
             A.set_at(i, i - 1, -a * tau);
-        A.set_at(i, i, 2 * h * h - 2 * a * tau);
-    }
-
-    int j = 1;
-
-    for (int k = 2; k < n; k++){
-        b[k - 1] = grid[j][k - 1] * a * tau + grid[j][k] * (2*h*h - a * tau) + grid[j][k + 1] + f(h * k, (j + 0.5) * tau) * tau * 2*h*h;
-    }
-
-    b[0] = grid[j][0] * a * tau + grid[j][1] * (2*h*h - a * tau) + grid[j][2] + f(h * 1, (j + 0.5) * tau) * tau * 2*h*h + grid[j + 1][0] * a * tau;
-    b[n - 1] = grid[j][n - 2] * a * tau + grid[j][n - 1] * (2*h*h - a * tau) + grid[j][n] + f(h * (n - 1), (j + 0.5) * tau) * tau * 2*h*h + grid[j + 1][n] * a * tau;
-
-    std::vector<double> x = solve_system(A, b);
-
-
-    for (int i = 0; i < n ; i++){
-        grid.set_at(j, i + 1, x[i]);
+        A.set_at(i, i, 2 * h * h + 2 * a * tau);
     }
 
 
-    // for (int i = 0; i < k_max - 2 ; i++){
-    //     for (int j = 0; j < k_max - 2; j++){
-    //         std::cout << A[i][j] << ' ';
-    //     }
-    //     std::cout << "\n";
-    // }
-    
+    for (int j = 1; j < j_max; j++){
+        for (int k = 0; k < n - 1; k++){
+            b[k] = u[j-1][k] * a * tau + u[j-1][k+1] * (2*h*h - 2*a*tau) + u[j-1][k+2]*a*tau + f((k + 1) * h, (j - 0.5)*tau)*tau*2*h*h;
+        }
+        b[0] += u[j][0]*a*tau;
+        b[n-2] += u[j][n-1]*a*tau;
 
+
+        std::vector<double> x = solve_system(A, b);
+
+        for (int i = 0; i < n - 2 ; i++){
+            u.set_at(j, i + 1, x[i]);
+        }
+
+    }
     
     for (int j = 0; j < j_max ; j++){
-        for (int k = 0; k < k_max; k++){
-            std::cout << k * h << '\t' << j * tau << '\t' << grid[j][k] << '\n';
+        for (int k = 0; k < n; k++){
+            std::cout << k * h << '\t' << j * tau << '\t' << u[j][k] << '\n';
         }
     }
-
 }
