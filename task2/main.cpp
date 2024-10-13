@@ -85,7 +85,7 @@ int main(){
     std::cout << std::setprecision(10);
 
     const double a = 0.027;
-    const double tau = 0.2;
+    const double tau = 0.05;
 
     double n = 50 + 1;
 
@@ -107,11 +107,13 @@ int main(){
         u.set_at(j, n - 1, mu2(j * tau));
     }
 
-    matrix<double> A(n - 1, n - 1);
-    std::vector<double> b(n - 1);
+    int m = n - 2;
 
-    for (int i = 0; i < n - 1; i++){
-        if (i < n - 2)
+    matrix<double> A(m, m);
+    std::vector<double> b(m);
+
+    for (int i = 0; i < m; i++){
+        if (i < m - 1)
             A.set_at(i, i + 1, -a * tau);
         if (i > 0)
             A.set_at(i, i - 1, -a * tau);
@@ -119,23 +121,25 @@ int main(){
     }
 
 
-
     for (int j = 1; j < j_max; j++){
-        for (int k = 0; k <= n - 3; k++){
+        for (int k = 0; k <= m - 1; k++){
             b[k] = u[j - 1][k] * a * tau + u[j - 1][k + 1] * (2 * h * h - 2 * a * tau) + u[j - 1][k + 2] * a * tau + f((k + 1) * h, (j - 0.5) * tau) * tau * 2 * h * h;
         }
         b[0] += u[j][0] * a * tau;
-        b[n - 2] += u[j][n - 1] * a * tau;
+        b[m - 1] += u[j][n - 1] * a * tau;
 
 
         std::vector<double> x = solve_system(A, b);
 
-        for (int i = 0; i < n - 2 ; i++){
+        for (int i = 0; i < m ; i++){
             u.set_at(j, i + 1, x[i]);
         }
 
     }
 
+
+    // to draw a plot
+    // splot 'output.dat', -2*x**4+y-(x+2*y)**2-y*exp(x)
 
     std::ofstream output_stream("output.dat");
     output_stream << std::setprecision(10);
