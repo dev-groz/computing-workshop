@@ -1,7 +1,8 @@
 #include <iostream>
 #include <cmath>
 #include <vector>
-
+#include <iomanip>
+#include <fstream>
 
 template <typename T>
 class matrix{
@@ -81,12 +82,16 @@ std::vector<double> solve_system(const matrix<double> a, const std::vector<doubl
 }
 
 int main(){
-    const double a = 0.027;
-    const double tau = 0.1;
-    const double h = 0.02;
+    std::cout << std::setprecision(10);
 
-    int n = (int)(1 / h) + 1;
-    int j_max = (int) 1 / tau;
+    const double a = 0.027;
+    const double tau = 0.2;
+
+    double n = 50 + 1;
+
+    const double h = 1 / (n - 1);
+
+    int j_max = (int) 1 / tau + 1;
 
     matrix<double> u(j_max, n);
 
@@ -117,10 +122,10 @@ int main(){
 
     for (int j = 1; j < j_max; j++){
         for (int k = 0; k <= n - 3; k++){
-            b[k] = u[j-1][k] * a * tau + u[j-1][k+1] * (2*h*h - 2*a*tau) + u[j-1][k+2]*a*tau + f((k + 1) * h, (j - 0.5)*tau)*tau*2*h*h;
+            b[k] = u[j - 1][k] * a * tau + u[j - 1][k + 1] * (2 * h * h - 2 * a * tau) + u[j - 1][k + 2] * a * tau + f((k + 1) * h, (j - 0.5) * tau) * tau * 2 * h * h;
         }
-        b[0] += u[j][0]*a*tau;
-        b[n-1] += u[j][n-1]*a*tau;
+        b[0] += u[j][0] * a * tau;
+        b[n - 2] += u[j][n - 1] * a * tau;
 
 
         std::vector<double> x = solve_system(A, b);
@@ -130,10 +135,14 @@ int main(){
         }
 
     }
-    
+
+
+    std::ofstream output_stream("output.dat");
+    output_stream << std::setprecision(10);
+
     for (int j = 0; j < j_max ; j++){
         for (int k = 0; k < n; k++){
-            std::cout << k * h << '\t' << j * tau << '\t' << u[j][k] << '\n';
+            output_stream << k * h << '\t' << j * tau << '\t' << u[j][k] << '\n';
         }
     }
 }
