@@ -51,6 +51,10 @@ double f(double x, double t){
     return 1 - 4 * x - 8 * t - std::exp(x) + 0.027 * (24 * x * x + 2 + t * std::exp(x));
 }
 
+double real_u(double x, double t){
+    return -2*std::pow(x, 4) + t - std::pow(x + 2 *t, 2) - t * std::exp(x);
+}
+
 
 std::vector<double> solve_system(const matrix<double> a, const std::vector<double>& b){
     int n = b.size();
@@ -85,9 +89,9 @@ int main(){
     std::cout << std::setprecision(10);
 
     const double a = 0.027;
-    const double tau = 0.05;
+    const double tau = 0.2;
 
-    double n = 50 + 1;
+    double n = 15 + 1;
 
     const double h = 1 / (n - 1);
 
@@ -149,4 +153,18 @@ int main(){
             output_stream << k * h << '\t' << j * tau << '\t' << u[j][k] << '\n';
         }
     }
+
+    double max_error = 0;
+
+    for (int j = 0; j < j_max ; j++){
+        for (int k = 0; k < n; k++){
+            double error = std::abs(u[j][k] - real_u(k * h, j * tau));
+            if (error > max_error){
+                max_error = error;
+            }
+        }
+    }
+
+    std::cout << "Max error is: " << max_error << std::endl;
+
 }
