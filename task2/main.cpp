@@ -47,8 +47,9 @@ double mu2(double t){
 }
 
 double f(double x, double t){
-    return 1.054 + x * (0.648 * x - 4) + std::exp(x) * (0.027 * t - 1);
+    return 1 - 4 * x - 8 * t - std::exp(x) + 0.027 * (24 * x * x + 2 + t * std::exp(x));
 }
+
 
 std::vector<double> solve_system(const matrix<double> a, const std::vector<double>& b){
     int n = b.size();
@@ -82,9 +83,9 @@ std::vector<double> solve_system(const matrix<double> a, const std::vector<doubl
 int main(){
     const double a = 0.027;
     const double tau = 0.1;
-    const double h = 0.025;
+    const double h = 0.02;
 
-    int n = (int)(1 / h);
+    int n = (int)(1 / h) + 1;
     int j_max = (int) 1 / tau;
 
     matrix<double> u(j_max, n);
@@ -113,12 +114,13 @@ int main(){
     }
 
 
+
     for (int j = 1; j < j_max; j++){
-        for (int k = 0; k < n - 1; k++){
+        for (int k = 0; k <= n - 3; k++){
             b[k] = u[j-1][k] * a * tau + u[j-1][k+1] * (2*h*h - 2*a*tau) + u[j-1][k+2]*a*tau + f((k + 1) * h, (j - 0.5)*tau)*tau*2*h*h;
         }
         b[0] += u[j][0]*a*tau;
-        b[n-2] += u[j][n-1]*a*tau;
+        b[n-1] += u[j][n-1]*a*tau;
 
 
         std::vector<double> x = solve_system(A, b);
